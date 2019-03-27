@@ -10,6 +10,7 @@ pipeline {
     ansiColor 'xterm'
     skipStagesAfterUnstable()
     timeout time: 1, unit: 'HOURS'
+    lock resource: 'quay.io/sdase/centos'
   }
   environment {
     CENTOS_VERSION = '7'
