@@ -1,14 +1,9 @@
 FROM docker.io/centos:7
 
-ARG CENTOS_VERSION="unknown"
-ARG BUILD_DATE="unknown"
-ARG BUILD_URL="unknown"
-ARG GIT_COMMIT="unknown"
-
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 LABEL \
   # Contact details of the people or organization responsible for the image
-  org.opencontainers.image.authors="SDA SE Enineers <engineers@sda.se>" \
+  org.opencontainers.image.authors="SDA SE Engineers <engineers@sda.se>" \
   # URL to find more information on the image
   org.opencontainers.image.url="https://quay.io/repository/sdase/centos" \
   # URL to get source code for building the image

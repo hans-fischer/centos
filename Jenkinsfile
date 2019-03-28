@@ -53,7 +53,6 @@ pipeline {
       }
       steps {
         echo 'Publishing image'
-
         withCredentials([usernamePassword(
             credentialsId: 'quay-io-sdase-docker-auth',
             usernameVariable: 'imageRegistryUser',
