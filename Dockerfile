@@ -1,3 +1,17 @@
+# CentOS image
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 FROM docker.io/centos:7
 
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
@@ -14,7 +28,7 @@ LABEL \
   org.opencontainers.image.vendor="SDA SE Open Industry Solutions" \
   # License(s) under which contained software is distributed as an SPDX License
   # Expression.
-  org.opencontainers.image.licenses="UNLICENSED" \
+  org.opencontainers.image.licenses="AGPL-3.0" \
   # Human-readable title of the image
   org.opencontainers.image.title="CentOS" \
   # Human-readable description of the software packaged in the image
