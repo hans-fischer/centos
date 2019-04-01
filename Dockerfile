@@ -41,8 +41,8 @@ LABEL \
 RUN \
   yum -y update && \
   yum -y install epel-release && \
+  yum -y remove libssh2 && \
   yum -y autoremove && \
   yum -y clean all && \
   rm -rf /var/cache/yum && \
-  yum -y remove libssh2 && \
   true
