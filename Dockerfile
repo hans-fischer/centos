@@ -17,7 +17,7 @@ FROM docker.io/centos:7
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 LABEL \
   # Contact details of the people or organization responsible for the image
-  org.opencontainers.image.authors="SDA SE Engineers <engineers@sda.se>" \
+  org.opencontainers.image.authors="SDA SE Engineers <cloud@sda-se.com>" \
   # URL to find more information on the image
   org.opencontainers.image.url="https://quay.io/repository/sdase/centos" \
   # URL to get source code for building the image
@@ -36,7 +36,7 @@ LABEL \
   # Base image
   se.sda.oci.images.centos.base="docker.io/centos:7" \
   # https://docs.docker.com/engine/reference/builder/#label
-  maintainer="engineers@sda.se"
+  maintainer="cloud@sda-se.com"
 
 RUN \
   yum -y update && \
