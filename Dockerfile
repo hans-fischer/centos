@@ -44,5 +44,5 @@ RUN \
   yum -y autoremove && \
   yum -y clean all && \
   rm -rf /var/cache/yum && \
-  rm /lib64/libssh2.* && \
+  yum -y remove libssh2 && \
   true
