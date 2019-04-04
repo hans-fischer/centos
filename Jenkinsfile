@@ -27,32 +27,14 @@ pipeline {
     lock resource: 'quay.io/sdase/centos'
   }
   environment {
-    CENTOS_VERSION = '7'
+    CENTOS_VERSION = '7.6.1810'
   }
   stages {
     stage("Build image") {
       steps {
-        echo 'Building image'
-        script {
-          if (env.BRANCH_NAME == 'master') {
-            env.TAG = env.CENTOS_VERSION
-          } else {
-            def matcher = env.BRANCH_NAME =~ \
-              /(?<type>[a-z]+)\/((?<ticket>[A-Z]+-\d+)-)?(?<name>[a-z\-\.]+)/
-            if (matcher.matches()) {
-              branch = matcher.group('name')
-              branch = branch.take(127 - \
-                env.CENTOS_VERSION.length()).replaceAll(/(^\-+|\-+$)/, '')
-              env.TAG = "${env.CENTOS_VERSION}-${branch}"
-            } else {
-              env.TAG = 'undefined'
-            }
-          }
-        }
-
         sh """
           docker build \
-            --tag quay.io/sdase/centos:${env.TAG} \
+            --tag quay.io/sdase/centos:build \
             --pull \
             --no-cache \
             --rm \
@@ -60,13 +42,32 @@ pipeline {
         """
       }
     }
+    stage("Compare bill of materials") {
+      steps {
+        script {
+          def currentBillOfMaterials = sh returnStdout: true, script """
+            docker run --rm --tty quay.io/sdase/centos:build \
+            rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n"
+          """
+          def newMaterials = sh returnStdout: true, script """
+            docker run --rm --tty quay.io/sdase/centos:${CENTOS_VERSION} \
+            rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n"
+          """
+
+          env.BILL_OF_MATERIALS_CHANGED = \
+            "${currentBillOfMaterials != newMaterials}"
+        }
+      }
+    }
     stage("Publish image") {
       when {
         beforeAgent true
-        branch 'master'
+        allOf {
+          branch 'master'
+          environment name: 'BILL_OF_MATERIALS_CHANGED', value: 'true'
+        }
       }
       steps {
-        echo 'Publishing image'
         withCredentials([usernamePassword(
             credentialsId: 'quay-io-sdase-docker-auth',
             usernameVariable: 'imageRegistryUser',
@@ -76,9 +77,18 @@ pipeline {
               --username "${imageRegistryUser}" \
               --password "${imageRegistryPassword}" \
               quay.io
-
-            docker push quay.io/sdase/centos:${env.TAG}
           """
+        }
+        script {
+          [
+            env.CENTOS_VERSION,
+            "${env.CENTOS_VERSION}-${env.BUILD_NUMBER}"
+          ].each { tag ->
+            sh """
+              docker tag quay.io/sdase/centos:build quay.io/sdase/centos:${tag}
+              docker push \${_}
+            """
+          }
         }
       }
     }

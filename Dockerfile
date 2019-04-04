@@ -12,7 +12,9 @@
 
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-FROM docker.io/centos:7
+
+# Attention: When changing this, change it in the Jenkinsfile, too.
+FROM docker.io/centos:7.6.1810
 
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 LABEL \
