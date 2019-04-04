@@ -47,6 +47,7 @@ pipeline {
       steps {
         script {
           def currentBillOfMaterials = sh returnStdout: true, script: """
+            set +e
             docker run --rm --tty quay.io/sdase/centos:build \
             rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n"
           """
@@ -81,10 +82,13 @@ pipeline {
           """
         }
         script {
-          [
-            env.CENTOS_VERSION,
-            "${env.CENTOS_VERSION}-${env.BUILD_NUMBER}"
-          ].each { tag ->
+
+          def tokens = env.CENTOS_VERSION.tokenize('.')
+          def tags = (1..tokens.size()).collect {
+            tokens.subList(0, it).join('.')
+          } + "${env.CENTOS_VERSION}-${env.BUILD_NUMBER}"
+
+          tags.each { tag ->
             sh """
               docker tag quay.io/sdase/centos:build quay.io/sdase/centos:${tag}
               docker push \${_}
