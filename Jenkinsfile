@@ -90,7 +90,7 @@ pipeline {
           tags.each { tag ->
             sh """
               docker tag quay.io/sdase/centos:build quay.io/sdase/centos:${tag}
-              docker push \${_}
+              docker push quay.io/sdase/centos:${tag}
             """
           }
         }
