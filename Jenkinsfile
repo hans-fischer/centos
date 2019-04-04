@@ -47,14 +47,13 @@ pipeline {
       steps {
         script {
           def currentBillOfMaterials = sh returnStdout: true, script: """
-            docker run --rm --tty quay.io/sdase/centos:build \
+            docker run --rm --tty quay.io/sdase/centos:${CENTOS_VERSION} \
             rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n" || true
           """
-          def newMaterials = sh returnStdout: true, script: """
-            docker run --rm --tty quay.io/sdase/centos:${CENTOS_VERSION} \
+          def newOfMaterials = sh returnStdout: true, script: """
+            docker run --rm --tty quay.io/sdase/centos:build \
             rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n"
           """
-
           env.BILL_OF_MATERIALS_CHANGED = \
             "${currentBillOfMaterials != newMaterials}"
         }
