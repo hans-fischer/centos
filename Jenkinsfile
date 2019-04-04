@@ -27,6 +27,7 @@ pipeline {
     lock resource: 'quay.io/sdase/centos'
   }
   environment {
+    // Attention: When changing this, change it in the Dockerfile, too.
     CENTOS_VERSION = '7.6.1810'
   }
   stages {
@@ -45,11 +46,11 @@ pipeline {
     stage("Compare bill of materials") {
       steps {
         script {
-          def currentBillOfMaterials = sh returnStdout: true, script """
+          def currentBillOfMaterials = sh returnStdout: true, script: """
             docker run --rm --tty quay.io/sdase/centos:build \
             rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n"
           """
-          def newMaterials = sh returnStdout: true, script """
+          def newMaterials = sh returnStdout: true, script: """
             docker run --rm --tty quay.io/sdase/centos:${CENTOS_VERSION} \
             rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n"
           """
