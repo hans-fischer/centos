@@ -46,9 +46,10 @@ pipeline {
     stage("Compare bill of materials") {
       steps {
         script {
-          def currentBillOfMaterials = sh returnStdout: true, script: """
+          def currentBillOfMaterials = sh returnStdout: true,
+              returnStatus: true, script: """
             docker run --rm --tty quay.io/sdase/centos:${CENTOS_VERSION} \
-            rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n" || true
+            rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n"
           """
           def newOfMaterials = sh returnStdout: true, script: """
             docker run --rm --tty quay.io/sdase/centos:build \
