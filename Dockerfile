@@ -43,6 +43,7 @@ LABEL \
 RUN \
   yum -y update && \
   yum -y install epel-release && \
+  yum -y install jq && \
   yum -y autoremove && \
   yum -y clean all && \
   rm -rf /var/cache/yum && \
