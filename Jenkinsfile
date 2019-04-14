@@ -55,7 +55,7 @@ pipeline {
       }
       steps {
         unstash 'oci-archives'
-        lock(targetImage) {
+        lock('centos') {
           milestone 0
           script {
             findFiles(glob: '*.tar').each { file ->
@@ -76,7 +76,7 @@ pipeline {
                 tags.each { tag ->
                   skopeo.copy(
                     from: "oci-archive:${file}",
-                    to: "docker://quay.io/sdase/${targetImage}:${tag}",
+                    to: "docker://quay.io/sdase/centos:${tag}",
                     options: [
                       destCreds: env.QUAY_CREDS
                     ]
