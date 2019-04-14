@@ -52,6 +52,8 @@ echo 'root:x:0:' > etc/group
 echo 'root:*:0:0:99999:7:::' > etc/shadow
 popd
 
+oci_prefix="org.opencontainers.image"
+
 version="$( perl -0777 -ne 'print "$&\n" if /\d+(\.\d+)*/' \
   "${mnt}/etc/centos-release" )"
 
