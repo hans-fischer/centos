@@ -52,8 +52,8 @@ echo 'root:x:0:' > etc/group
 echo 'root:*:0:0:99999:7:::' > etc/shadow
 popd
 
-version="$( buildah run "${ctr}" -- perl -0777 -ne \
-  'print "$&\n" if /\d+(\.\d+)*/' /etc/centos-release)"
+version="$( perl -0777 -ne 'print "$&\n" if /\d+(\.\d+)*/' \
+  "${mnt}/etc/centos-release" )"
 
 buildah config \
   --label "${oci_prefix}.authors=SDA SE Engineers <cloud@sda-se.com>" \
