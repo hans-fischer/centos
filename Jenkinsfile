@@ -61,7 +61,7 @@ pipeline {
           milestone 0
           script {
             findFiles(glob: '*.tar').each { file ->
-              echo "File: «file»"
+              echo "File: «${file}»"
 
               def spec = skopeo.inspect image: "oci-archive:${file}"
               def version = spec['Labels']['org.opencontainers.image.version']
@@ -88,61 +88,6 @@ pipeline {
             }
           }
         }
-      }
-    }
-  }
-}
-
-
-
-
-
-
-
-
-pipeline {
-  agent none
-  options {
-    ansiColor 'xterm'
-    skipStagesAfterUnstable()
-    timeout time: 1, unit: 'HOURS'
-  }
-  stages {
-    stage("Build container image") {
-      agent {
-        docker {
-          image 'quay.io/sdase/centos-development:7.6.1810'
-          args '--privileged -u root:root'
-        }
-      }
-      steps {
-        sh """
-          set -x
-          ./build
-          buildah push centos oci-archive:oci-archive.tar:centos:build
-          chown --recursive --reference=./build oci-archive.tar
-        """
-        stash name: 'oci-archive', includes: 'oci-archive.tar'
-      }
-    }
-    stage("Publish container image") {
-      agent {
-        docker {
-          image 'quay.io/sdase/centos-development:7.6.1810'
-          args '--privileged -u root:root'
-        }
-      }
-      environment {
-        QUAY_CREDS = credentials('quay-io-sdase-docker-auth')
-      }
-      steps {
-        unstash 'oci-archive'
-        sh """
-          skopeo copy \
-            --dest-creds "${env.QUAY_CREDS}" \
-            oci-archive:oci-archive.tar:centos:build \
-            docker://quay.io/sdase/centos:from-buildah
-        """
       }
     }
   }
