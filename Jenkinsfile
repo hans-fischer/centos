@@ -13,9 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pipeline {
-  agent {
-    label 'docker'
-  }
+  agent none
   triggers {
     // Build daily
     cron('H H * * *')
@@ -24,76 +22,125 @@ pipeline {
     ansiColor 'xterm'
     skipStagesAfterUnstable()
     timeout time: 1, unit: 'HOURS'
-    lock resource: 'quay.io/sdase/centos'
-  }
-  environment {
-    // Attention: When changing this, change it in the Dockerfile, too.
-    CENTOS_VERSION = '7.6.1810'
   }
   stages {
-    stage("Build image") {
+    stage("Build container images") {
+      agent {
+        docker {
+          image 'quay.io/sdase/centos-development:7'
+          args '--privileged -u root:root'
+        }
+      }
       steps {
         sh """
-          docker build \
-            --tag quay.io/sdase/centos:build \
-            --pull \
-            --no-cache \
-            --rm \
-            .
+          BUILD_EXPORT_OCI_ARCHIVES=true ./build.sh
+          chown --reference=${env.WORKSPACE}/Jenkinsfile *.tar
         """
+        stash name: 'oci-archives', includes: '*.tar'
       }
     }
-    stage("Compare bill of materials") {
-      steps {
-        script {
-          def currentBillOfMaterials = sh returnStdout: true,
-              returnStatus: true, script: """
-            docker run --rm --tty quay.io/sdase/centos:${CENTOS_VERSION} \
-            rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n"
-          """
-          def newBillOfMaterials = sh returnStdout: true, script: """
-            docker run --rm --tty quay.io/sdase/centos:build \
-            rpm -qa --qf "%{NAME} %{ARCH} %{VERSION} %{RELEASE} %{SHA1HEADER}\n"
-          """
-          env.BILL_OF_MATERIALS_CHANGED = \
-            "${currentBillOfMaterials != newBillOfMaterials}"
-        }
-      }
-    }
-    stage("Publish image") {
+    stage('Publish container images') {
       when {
         beforeAgent true
-        allOf {
-          branch 'master'
-          environment name: 'BILL_OF_MATERIALS_CHANGED', value: 'true'
+        branch 'master'
+      }
+      agent {
+        docker {
+          image 'quay.io/sdase/centos-development:7'
+          args '--privileged -u root:root'
+        }
+      }
+      environment {
+        QUAY_CREDS = credentials('quay-io-sdase-docker-auth')
+      }
+      steps {
+        unstash 'oci-archives'
+        lock(targetImage) {
+          milestone 0
+          script {
+            findFiles(glob: '*.tar').each { file ->
+              echo "File: «file»"
+
+              def spec = skopeo.inspect image: "oci-archive:${file}"
+              def version = spec['Labels']['org.opencontainers.image.version']
+              echo "Image version: «${version}»"
+
+              def matcher = version =~ /(?<semVer>\d+(.\d+)*)(?<suffix>-(.+))?/
+              if( matcher.matches() ) {
+                def semVer = matcher.group('semVer')
+                def suffix = matcher.group('suffix')
+                def tokens = semVer.tokenize('.')
+                def tags = (1..tokens.size()).collect {
+                  "${tokens.subList(0, it).join('.')}${suffix ?: ''}"
+                }
+                tags.each { tag ->
+                  skopeo.copy(
+                    from: "oci-archive:${file}",
+                    to: "docker://quay.io/sdase/${targetImage}:${tag}",
+                    options: [
+                      destCreds: env.QUAY_CREDS
+                    ]
+                  )
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
+pipeline {
+  agent none
+  options {
+    ansiColor 'xterm'
+    skipStagesAfterUnstable()
+    timeout time: 1, unit: 'HOURS'
+  }
+  stages {
+    stage("Build container image") {
+      agent {
+        docker {
+          image 'quay.io/sdase/centos-development:7.6.1810'
+          args '--privileged -u root:root'
         }
       }
       steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'quay-io-sdase-docker-auth',
-            usernameVariable: 'imageRegistryUser',
-            passwordVariable: 'imageRegistryPassword')]) {
-          sh """
-            docker login \
-              --username "${imageRegistryUser}" \
-              --password "${imageRegistryPassword}" \
-              quay.io
-          """
+        sh """
+          set -x
+          ./build
+          buildah push centos oci-archive:oci-archive.tar:centos:build
+          chown --recursive --reference=./build oci-archive.tar
+        """
+        stash name: 'oci-archive', includes: 'oci-archive.tar'
+      }
+    }
+    stage("Publish container image") {
+      agent {
+        docker {
+          image 'quay.io/sdase/centos-development:7.6.1810'
+          args '--privileged -u root:root'
         }
-        script {
-
-          def tokens = env.CENTOS_VERSION.tokenize('.')
-          def tags = (1..tokens.size()).collect {
-            tokens.subList(0, it).join('.')
-          } + "${env.CENTOS_VERSION}-${env.BUILD_NUMBER}"
-
-          tags.each { tag ->
-            sh """
-              docker tag quay.io/sdase/centos:build quay.io/sdase/centos:${tag}
-              docker push quay.io/sdase/centos:${tag}
-            """
-          }
-        }
+      }
+      environment {
+        QUAY_CREDS = credentials('quay-io-sdase-docker-auth')
+      }
+      steps {
+        unstash 'oci-archive'
+        sh """
+          skopeo copy \
+            --dest-creds "${env.QUAY_CREDS}" \
+            oci-archive:oci-archive.tar:centos:build \
+            docker://quay.io/sdase/centos:from-buildah
+        """
       }
     }
   }
