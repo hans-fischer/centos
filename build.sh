@@ -59,14 +59,14 @@ version="$( perl -0777 -ne 'print "$&\n" if /\d+(\.\d+)*/' \
 
 buildah config \
   --label "${oci_prefix}.authors=SDA SE Engineers <cloud@sda-se.com>" \
-  --label "${oci_prefix}.url=https://quay.io/sdase/centos-development" \
-  --label "${oci_prefix}.source=https://github.com/SDA-SE/centos-development" \
+  --label "${oci_prefix}.url=https://quay.io/sdase/centos" \
+  --label "${oci_prefix}.source=https://github.com/SDA-SE/centos" \
   --label "${oci_prefix}.version=${version}" \
   --label "${oci_prefix}.revision=$( git rev-parse HEAD )" \
   --label "${oci_prefix}.vendor=SDA SE Open Industry Solutions" \
   --label "${oci_prefix}.licenses=AGPL-3.0" \
   --label "${oci_prefix}.title=CentOS" \
-  --label "${oci_prefix}.description=CentOS. The one and only base image." \
+  --label "${oci_prefix}.description=CentOS base image" \
   --env "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
   --cmd "/bin/sh" \
   "${ctr}"
