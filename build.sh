@@ -29,7 +29,11 @@ yum_opts=(
 yum ${yum_opts[@]} install centos-release.x86_64
 yum ${yum_opts[@]} clean all
 
+<<<<<<< HEAD
 pushd "${ctr}"
+=======
+pushd "${mnt}"
+>>>>>>> Buildah
 
 mkdir -p run/lock
 
