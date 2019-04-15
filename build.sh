@@ -51,10 +51,6 @@ echo 'root:x:0:0:root:/root:/bin/bash' > etc/passwd
 echo 'root:x:0:' > etc/group
 echo 'root:*:0:0:99999:7:::' > etc/shadow
 
-echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> etc/passwd
-echo 'nobody:x:99:' >> etc/group
-echo 'nobody:*:17834:0:99999:7:::' >> etc/group
-
 popd
 
 oci_prefix="org.opencontainers.image"
