@@ -40,9 +40,9 @@ yum ${yum_opts[@]} clean all
 bill_of_materials="$(rpm \
   --query \
   --all \
-  --queryformat '%{NAME} %{VERSION} %{RELEASE} %{ARCH}\n' \
+  --queryformat '\{ "type": "rpm", "name": "%{NAME}", "version": "%{VERSION}", "release": "%{RELEASE}", "arch": "%{ARCH}"\}\n' \
   --dbpath="${mnt}"/var/lib/rpm \
-  | sort)"
+  | sort | jq -cs '.')"
 
 version="$( perl -0777 -ne 'print "$&\n" if /\d+(\.\d+)*/' \
   "${mnt}/etc/centos-release" )"
@@ -82,7 +82,7 @@ buildah config \
   --label "${oci_prefix}.licenses=AGPL-3.0" \
   --label "${oci_prefix}.title=CentOS" \
   --label "${oci_prefix}.description=CentOS base image" \
-  --label "io.sda-se.image.bom=${bill_of_materials}" \
+  --label "io.sda-se.image.bom=$( echo "${bill_of_materials}" | jq -Rs '.')" \
   --env "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
   --cmd "/bin/sh" \
   "${ctr}"
