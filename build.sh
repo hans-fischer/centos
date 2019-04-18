@@ -37,12 +37,12 @@ yum_opts=(
 yum ${yum_opts[@]} install centos-release.x86_64
 yum ${yum_opts[@]} clean all
 
-bom="$(rpm \
+bom_sha256="$(rpm \
   --query \
   --all \
   --queryformat '\{ "type": "rpm", "name": "%{NAME}", "version": "%{VERSION}", "release": "%{RELEASE}", "arch": "%{ARCH}"\}\n' \
   --dbpath="${mnt}"/var/lib/rpm \
-  | sort | jq -cs '.')"
+  | sort | jq -cs '.' | sha256sum | awk '{ print $1; }')"
 
 version="$( perl -0777 -ne 'print "$&\n" if /\d+(\.\d+)*/' \
   "${mnt}/etc/centos-release" )"
@@ -82,7 +82,7 @@ buildah config \
   --label "${oci_prefix}.licenses=AGPL-3.0" \
   --label "${oci_prefix}.title=CentOS" \
   --label "${oci_prefix}.description=CentOS base image" \
-  --label "io.sda-se.image.bom.sha256=$( echo "${bom}" | sha256sum )" \
+  --label "io.sda-se.image.bom.sha256=$( echo "${bom_sha256}" )" \
   --env "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
   --cmd "/bin/sh" \
   "${ctr}"
