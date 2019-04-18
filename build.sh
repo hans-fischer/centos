@@ -16,6 +16,14 @@
 
 set -xe
 
+trap cleanup INT EXIT
+
+cleanup() {
+  test -n "${ctr}" && buildah rm "${ctr}" || true
+}
+
+image="centos"
+
 ctr="$(buildah from scratch)"
 mnt="$(buildah mount ${ctr})"
 yum_opts=(
@@ -28,6 +36,16 @@ yum_opts=(
 
 yum ${yum_opts[@]} install centos-release.x86_64
 yum ${yum_opts[@]} clean all
+
+bill_of_materials="$(rpm \
+  --query \
+  --all \
+  --queryformat '%{NAME} %{VERSION} %{RELEASE} %{ARCH}\n' \
+  --dbpath="${mnt}"/var/lib/rpm \
+  | sort)"
+
+version="$( perl -0777 -ne 'print "$&\n" if /\d+(\.\d+)*/' \
+  "${mnt}/etc/centos-release" )"
 
 pushd "${mnt}"
 
@@ -47,17 +65,13 @@ rm -rf \
   var/{cache,log}/* \
   tmp/*
 
-echo 'root:x:0:0:root:/root:/bin/bash' > etc/passwd
-echo 'root:x:0:' > etc/group
-echo 'root:*:0:0:99999:7:::' > etc/shadow
+echo 'root:x:0:0:root:/root:/bin/bash' > ./etc/passwd
+echo 'root:x:0:' > ./etc/group
+echo 'root:*:0:0:99999:7:::' > ./etc/shadow
 
 popd
 
 oci_prefix="org.opencontainers.image"
-
-version="$( perl -0777 -ne 'print "$&\n" if /\d+(\.\d+)*/' \
-  "${mnt}/etc/centos-release" )"
-
 buildah config \
   --label "${oci_prefix}.authors=SDA SE Engineers <cloud@sda-se.com>" \
   --label "${oci_prefix}.url=https://quay.io/sdase/centos" \
@@ -68,12 +82,12 @@ buildah config \
   --label "${oci_prefix}.licenses=AGPL-3.0" \
   --label "${oci_prefix}.title=CentOS" \
   --label "${oci_prefix}.description=CentOS base image" \
+  --label "io.sda-se.image.bom=${bill_of_materials}" \
   --env "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
   --cmd "/bin/sh" \
   "${ctr}"
 
-image="centos"
-buildah commit --rm --squash "${ctr}" "${image}"
+buildah commit --rm --squash "${ctr}" "${image}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
 then
