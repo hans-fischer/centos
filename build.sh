@@ -72,6 +72,8 @@ echo 'root:*:0:0:99999:7:::' > ./etc/shadow
 
 popd
 
+buildah run "${ctr}" -- localedef --force --inputfile=en_US --charmap=UTF-8 en_US.UTF-8
+
 oci_prefix="org.opencontainers.image"
 buildah config \
   --label "${oci_prefix}.authors=SDA SE Engineers <cloud@sda-se.com>" \
