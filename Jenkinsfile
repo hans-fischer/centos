@@ -14,4 +14,4 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @Library('jenkins-library@feat/pipeline-generator') _
 
-buildImage 'centos' basedOn 'container-image-updater'
+buildImage 'centos' triggeredBy 'container-image-updater'
