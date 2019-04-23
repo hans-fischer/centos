@@ -30,8 +30,9 @@ yum_opts=(
   "--installroot=${mnt}"
   "--assumeyes"
   "--setopt=install_weak_deps=false"
-  "--releasever=/"
+  "--releasever=7"
   "--setopt=tsflags=nodocs"
+  "--setopt=override_install_langs=en_US.utf8"
 )
 
 yum ${yum_opts[@]} install centos-release.x86_64
