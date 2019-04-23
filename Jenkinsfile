@@ -14,4 +14,4 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @Library('jenkins-library@feat/pipeline-generator') _
 
-buildImage 'centos' triggeredBy 'container-image-updater' hudson.model.Result.ABORTED
+buildImage 'centos' triggeredBy 'container-image-updater' 'ABORTED'
