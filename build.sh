@@ -37,7 +37,6 @@ yum_opts=(
 yum ${yum_opts[@]} install centos-release.x86_64
 yum ${yum_opts[@]} clean all
 
-old_bom_sha356="$( skopeo inspect docker://quay.io/sdase/centos:7 | jq -r '.Labels["io.sda-se.image.bom.sha256"]' )"
 bom_sha256="$(rpm \
   --query \
   --all \
@@ -45,12 +44,6 @@ bom_sha256="$(rpm \
     '\{ "type": "rpm", "name": "%{NAME}", "version": "%{VERSION}", "release": "%{RELEASE}", "arch": "%{ARCH}"\}\n' \
   --dbpath="${mnt}"/var/lib/rpm \
   | sort | jq -cs '.' | sha256sum | awk '{ print $1; }')"
-
-if [ "${bom_sha256}" == "${old_bom_sha356}" ]
-then
-  echo >&2 "New image would be the same as old image. Exiting."
-  exit 1
-fi
 
 version="$( perl -0777 -ne 'print "$&\n" if /\d+(\.\d+)*/' \
   "${mnt}/etc/centos-release" )"
