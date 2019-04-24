@@ -129,6 +129,7 @@ buildah config \
   --cmd "/bin/sh" \
   "${ctr}"
 
+# Create image
 buildah commit --rm --squash "${ctr}" "${image}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
