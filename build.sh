@@ -137,6 +137,5 @@ then
   skopeo copy \
     "containers-storage:localhost/${image}" \
     "oci-archive:${WORKSPACE:-.}/${image//:/-}.tar"
-
   buildah rmi "${image}"
 fi
