@@ -16,8 +16,10 @@
 
 set -xe
 
-trap cleanup INT EXIT
+dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+build_dir="${dir}/build"
 
+trap cleanup INT EXIT
 cleanup() {
   test -n "${ctr}" && buildah rm "${ctr}" || true
   test -f "${yum_config_file}" && rm "${yum_config_file}" || true
@@ -27,17 +29,17 @@ cleanup() {
 image="centos"
 
 # Create container
-ctr="$(buildah from scratch)"
+ctr="$( buildah from scratch )"
 
 # Mount container
-mnt="$(buildah mount ${ctr})"
+mnt="$( buildah mount "${ctr}" )"
 
-# Initialize RPM database
-mkdir -p "${mnt}/var/lib/rpm"
+# Initialize RPM database.
+mkdir -p "${mnt}"/var/lib/rpm
 rpm --root "${mnt}" --initdb
 
 # Download CentOS GnuPG key via HTTPS
-rpm_public_key_file="$(mktemp)"
+rpm_public_key_file="$( mktemp )"
 curl --location https://www.centos.org/keys/RPM-GPG-KEY-CentOS-7 \
   > "${rpm_public_key_file}"
 
@@ -45,7 +47,7 @@ curl --location https://www.centos.org/keys/RPM-GPG-KEY-CentOS-7 \
 rpm --root "${mnt}" --import "${rpm_public_key_file}"
 
 # Write Yum config file that is used during initial installation
-yum_config_file="$(mktemp)"
+yum_config_file="$( mktemp )"
 cat <<EOD > "${yum_config_file}"
 [centos-buildah-base]
 name=CentOS-7-Base
@@ -112,7 +114,7 @@ popd
 
 oci_prefix="org.opencontainers.image"
 buildah config \
-  --label "${oci_prefix}.authors=SDA SE Engineers <cloud@sda-se.com>" \
+  --label "${oci_prefix}.authors=SDA SE Engineers <engineers@sda-se.io>" \
   --label "${oci_prefix}.url=https://quay.io/sdase/centos" \
   --label "${oci_prefix}.source=https://github.com/SDA-SE/centos" \
   --label "${oci_prefix}.version=${version}" \
@@ -130,12 +132,13 @@ buildah config \
   "${ctr}"
 
 # Create image
-buildah commit --rm --squash "${ctr}" "${image}" && ctr=
+buildah commit --quiet --rm --squash "${ctr}" "${image}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
 then
-  skopeo copy \
-    "containers-storage:localhost/${image}" \
-    "oci-archive:${WORKSPACE:-.}/${image//:/-}.tar"
+  mkdir --parent "${build_dir}"
+  buildah push --quiet \
+    "${image}" \
+    "oci-archive:${build_dir}/${image//:/-}.tar"
   buildah rmi "${image}"
 fi
