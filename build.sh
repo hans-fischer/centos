@@ -51,7 +51,7 @@ yum_config_file="$( mktemp )"
 cat <<EOD > "${yum_config_file}"
 [centos-buildah-base]
 name=CentOS-7-Base
-baseurl=http://vault.centos.org/centos/7.6.1810/os/x86_64
+baseurl=http://mirror.centos.org/centos/7/os/x86_64
 gpgcheck=1
 EOD
 
@@ -70,6 +70,7 @@ yum_opts=(
 
 # Install CentOS
 yum ${yum_opts[@]} install centos-release.x86_64
+yum ${yum_opts[@]} install coreutils
 yum ${yum_opts[@]} clean all
 
 # Get a bill of materials
