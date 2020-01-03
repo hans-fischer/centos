@@ -53,13 +53,18 @@ cat <<EOD > "${yum_config_file}"
 name=CentOS-7-Base
 baseurl=http://mirror.centos.org/centos/7/os/x86_64
 gpgcheck=1
+
+[centos-buildah-updates]
+name=CentOS-7 - Updates
+baseurl=http://mirror.centos.org/centos/7/updates/x86_64/
+gpgcheck=1
 EOD
 
 # Options that are used with every `yum` command
 yum_opts=(
   "--config=${yum_config_file}"
   "--disablerepo=*"
-  "--enablerepo=centos-buildah-base"
+  "--enablerepo=centos-buildah-base,centos-buildah-updates"
   "--disableplugin=*"
   "--installroot=${mnt}"
   "--assumeyes"
