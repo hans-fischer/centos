@@ -2,6 +2,6 @@
 
 // CentOS image
 
-@Library('jenkins-pipeline@fix/skopeo-inspect-noncps') _
+@Library('jenkins-pipeline') _
 
 buildImage 'centos' triggeredBy 'container-image-updater'
