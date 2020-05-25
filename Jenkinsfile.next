@@ -2,6 +2,4 @@
 
 // CentOS image
 
-@Library('jenkins-pipeline') _
-
-buildImage 'centos' triggeredBy 'container-image-updater'
+buildImage targetImage: 'centos', slackChannel: '#devops-notifications' triggeredBy 'container-image-updater'
