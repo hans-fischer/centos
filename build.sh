@@ -85,7 +85,7 @@ dnf_opts=(
 )
 
 # Install CentOS
-dnf ${dnf_opts[@]} install bash coreutils rpm glibc-minimal-langpack glibc-langpack-de glibc-langpack-en
+dnf ${dnf_opts[@]} install bash coreutils rpm glibc-minimal-langpack glibc-langpack-de glibc-langpack-en libstdc++
 dnf ${dnf_opts[@]} clean all
 
 # Get a bill of materials
