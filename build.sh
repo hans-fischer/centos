@@ -26,7 +26,9 @@ cleanup() {
   test -f "${rpm_public_key_file}" && rm "${rpm_public_key_file}" || true
 }
 
-image="centos:8"
+# #############################################################################
+# CENTOS 8
+# #############################################################################
 
 # Create container
 ctr="$( buildah from scratch )"
@@ -144,20 +146,24 @@ buildah config \
   "${ctr}"
 
 # Create image
-buildah commit --quiet --rm --squash "${ctr}" "${image}" && ctr=
+image="centos:8"
+image_build="${image}.${RANDOM}"
+buildah commit --quiet --rm --squash "${ctr}" "${image_build}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
 then
   mkdir --parent "${build_dir}"
   buildah push --quiet \
-    "${image}" \
+    "${image_build}" \
     "oci-archive:${build_dir}/${image//:/-}.tar"
-  buildah rmi "${image}"
+  buildah rmi "${image_build}"
 fi
 
 cleanup
 
-image="centos:7"
+# #############################################################################
+# CENTOS 7 
+# #############################################################################
 
 # Create container
 ctr="$( buildah from scratch )"
@@ -268,13 +274,15 @@ buildah config \
   "${ctr}"
 
 # Create image
-buildah commit --quiet --rm --squash "${ctr}" "${image}" && ctr=
+image="centos:7"
+image_build="${image}.${RANDOM}"
+buildah commit --quiet --rm --squash "${ctr}" "${image_build}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
 then
   mkdir --parent "${build_dir}"
   buildah push --quiet \
-    "${image}" \
+    "${image_build}" \
     "oci-archive:${build_dir}/${image//:/-}.tar"
-  buildah rmi "${image}"
+  buildah rmi "${image_build}"
 fi
