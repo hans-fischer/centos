@@ -116,6 +116,13 @@ rm -rf boot dev proc sys
 # Unnecessary stuff
 rm -rf home media mnt opt srv
 
+# Remove unnecessary locales
+KEEPLANG=en_US
+for dir in locale i18n; do
+    find usr/share/${dir} -mindepth  1 -maxdepth 1 -type d -not \( -name "${KEEPLANG}" -o -name POSIX \) -exec rm -rf {} +
+done
+
+
 # Stuff that prevents reproduceable build
 rm -rf \
   etc/machine-id \
