@@ -87,7 +87,7 @@ dnf_opts=(
 )
 
 # Install CentOS
-dnf ${dnf_opts[@]} install bash coreutils rpm glibc-minimal-langpack glibc-langpack-de glibc-langpack-en libstdc++
+dnf ${dnf_opts[@]} install bash coreutils-single rpm glibc-minimal-langpack rootfiles langpacks-en libstdc++
 dnf ${dnf_opts[@]} clean all
 
 # Get a bill of materials
@@ -140,9 +140,8 @@ buildah config \
   --label "io.sda-se.image.bill-of-materials-hash=$( \
     echo "${bill_of_materials_hash}" )" \
   --env "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
-  --env "LANG=en_US.UTF-8" \
-  --env "LC_ALL=en_US.UTF-8" \
-  --cmd "/bin/sh" \
+  --env "LANG=C.utf8" \
+  --cmd "/bin/bash" \
   "${ctr}"
 
 # Create image
